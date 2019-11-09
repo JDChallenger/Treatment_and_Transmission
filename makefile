@@ -1,4 +1,3 @@
-#Improve all these names
 #1. 
 scenario1:
 	g++ WHM_untreated.cpp RK4.cpp
