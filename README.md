@@ -21,8 +21,8 @@ Here is a description of the auxilliary files in the project:
 
 * parameters.h (Header file, storing parameters common to the C++ files)
 * RK4.cpp (functions for the pharmacokinetic and pharmacodynamic models)
-* BradleyLibrary2.dat numerical values for the conversation of a gametocyte density to a measure of infectivity (the probability that malaria is transmitted to a feeding mosquito). These values were generated from the study by Bradley et al. https://doi.org/10.7554/eLife.34463.
+* Bradley_Infectivity.dat numerical values for the conversation of a gametocyte density to a measure of infectivity (the probability that malaria is transmitted to a feeding mosquito). These values were generated from the study by Bradley et al. https://doi.org/10.7554/eLife.34463.
 
 * makefile (directive which, for Linux or Mac, compiles and runs C++ model, and [if desired] runs python script which produces a visualisation of the model output)
 
-To run the model that utilising the real-world adherence data you will need to download the data from [this repository](http://actc.lshtm.ac.uk). Then remove the column headings and save as a text file. We did not use data from all 659 patients: as explained in the article, we removed some individuals who had taken too many pills in one of their doses. This was done because our model does not take toxicity effects into consideration. However, we include all the data here, so that the user can make their own decision for how to deal with this issue.
+To run the model that utilising the real-world adherence data (described in Bruxvoort et al. https://doi.org/10.1371/journal.pone.0134275) you will need to download the data from [this repository](http://actc.lshtm.ac.uk). Then remove the column headings and save as a text file. We did not use data from all 659 patients: as explained in the article, we removed some individuals who had taken too many pills in one of their doses. This was done because our model does not take toxicity effects into consideration. However, we include all the data here, so that the user can make their own decision for how to deal with this issue.
