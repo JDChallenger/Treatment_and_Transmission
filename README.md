@@ -3,19 +3,19 @@ This code accompanies article 'How delayed treatment and non-adherent treatment 
 
 The code provided here allows the user to explore five modelling scenarios:
 1. An untreated malaria infection, tracking both asexual and sexual parasite densities
-   - Running .cpp simulates the infection, and also calculates the overall infectivity of the malaria episode. This can be visualised with the Python script .py.
+   - Running WHM_untreated.cpp simulates the infection, and also calculates the overall infectivity of the malaria episode. This can be visualised with the Python script InfectivityPlot_untreated.py.
 
 2. A single malaria infection treated with Artemether-Lumefantrine (AL)
-   - Running .cpp simulates the infection and the impact of drug treatment. The malaria infection and the pharmacokinetic model can be visualised with the Python script .py.
+   - Running WHM_treated.cpp simulates the infection and the impact of drug treatment. The malaria infection and the pharmacokinetic model can be visualised with the Python script InfectivityPlot_treated.py.
 
 3. A cohort of treated patients, calculating the average infectivity of the cohort
-   - Running .cpp simulates a cohort of patients (default size is 500). This code could be modified to examine e.g. the impact of delaying treatment or underdosing.
+   - Running WHM_treated_cohort.cpp simulates a cohort of patients (default size is 500). This code could be modified to examine e.g. the impact of delaying treatment or underdosing.
 
 4. A single treated infection, using dose timings from XYZ.
-   - Running .cpp simulates the infection and the impact of drug treatment. The malaria infection and the pharmacokinetic model can be visualised with the Python script .py.
+   - Running WHM_treated_ADH.cpp simulates the infection and the impact of drug treatment. The malaria infection and the pharmacokinetic model can be visualised with the Python script InfectivityPlot_ADH.py.
 
 5. Running the model for all cohort of treated patients, using all adherence profiles in the adherence data
-   - Running .cpp simulates a treated cohort using the Tanzanian data to determine the doses taken and their timings. Note that the code avoids simulating certain adherence profiles, where overdosing is detected (see details below).
+   - Running WHM_treated_ADH_cohort.cpp simulates a treated cohort using the Tanzanian data to determine the doses taken and their timings. Note that the code avoids simulating certain adherence profiles, where overdosing is detected (see details below).
 
 Here is a description of the auxilliary files in the project:
 
