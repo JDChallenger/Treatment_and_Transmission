@@ -22,7 +22,7 @@ const char output_File[] = "WHM_Gametocytes_Results.txt";
 //Input library file For the infectivity model due to Bradley and co-workers
 const char infilename[] = "Bradley_Infectivity.dat";
 int mx = 1563;
-int max = mx*5;//How many elements in file?
+int max = mx*5;
 
 double vv;
 vector<double>vec;
@@ -42,12 +42,12 @@ while(in){
 	in.clear();
 	in.close();
 
-cout<<"Vector vec contains "<< vec.size() <<" entries. "<<vec[1]<<endl;
+//cout<<"Vector vec contains "<< vec.size() <<" entries. "<<vec[1]<<endl;
 double lib_gtot[mx];
 double lib_gM[mx];
 double lib_gF[mx];
-double lib_ratio[mx];//Note: this is M/F
-double lib_inf[mx];//Note: this is M/F
+double lib_ratio[mx]; //Note: this is M/F
+double lib_inf[mx]; //Note: this is M/F
 for(int i=0;i<mx;i++){
 	lib_gtot[i] = vec[5*i];
 	lib_gF[i] = vec[5*i + 1];
@@ -107,10 +107,10 @@ while(rand2 > pow(10,5.5)){
 }
 
 Pcs = kc * rand2;
-cout<<"Pcs: " << Pcs <<endl;
+//cout<<"Pcs: " << Pcs <<endl;
 
 Pms = km * log(1-(1/gompcst2)*(log(1-distribution2(generator))))*(1/gompcst1);
-cout<< "Pms: " << Pms <<endl;
+//cout<< "Pms: " << Pms <<endl;
 
 /* Declare vector to store parasitaemia, and give initial condition at t=0 */
 vector<double> P(400,0.0);
@@ -146,8 +146,7 @@ aux.clear();
 //Initialise G1
 G[0][0] = 0.0;
 
-//Draw values for alpha, delta and delta5 from relevant distributions. Put
-//Sexual commitment rate
+//Gametocyte parameters: Draw values for alpha, delta and delta5 from relevant distributions.
 double alpha = exp( -alpha_mean + alpha_sd * distribution(generator) );
 while(alpha>0.3){
 	alpha = exp( -alpha_mean + alpha_sd * distribution(generator) );
