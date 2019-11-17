@@ -74,7 +74,7 @@ uniform_real_distribution<double> distribution2(0.0,1.0);
 uniform_real_distribution<double> distribution3(-3.69,-0.0);//Upper end changed back
 
 //Choose a value of dt (often called h in RK4)
-double dt = 0.2;
+double dt = 0.2; //Note: if this is changed, update the Python script
 int delta_t=1/dt;
 int TL = (1/dt) * 24 * 400;// For 400 generations' worth
 cout <<"For 400 days we require "<< TL <<" increments" <<endl;
