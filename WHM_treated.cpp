@@ -14,11 +14,19 @@ using namespace std;
 
 int main () {
 
+//Output file for results
+const char output_File1[] = "WHM_Results_para_PK_ind.txt";
+const char output_File2[] = "WHM_Results_gam_and_infect_PK_ind.txt";
+
+ofstream out1(output_File1);
+ofstream out2(output_File2);	
+
+//****** 1. Read in data file which determines the infectivity model ****** 
+
 //Input library file
 const char infilename[] = "Bradley_Infectivity.dat";
-//Can this stuff go elsewhere??
 int mx = 1563;
-int max = mx*5;//How many elements in file?
+int max = mx*5;
 
 double vv;
 vector<double>vec;
@@ -38,7 +46,7 @@ while(in){
 in.clear();
 in.close();
 
-cout<<"Vector vec contains "<< vec.size() <<" entries. "<<vec[1]<<endl;
+//cout<<"Vector vec contains "<< vec.size() <<" entries. "<<vec[1]<<endl;
 double lib_gtot[mx];
 double lib_gM[mx];
 double lib_gF[mx];
@@ -52,13 +60,7 @@ for(int i=0;i<mx;i++){
 	lib_inf[i] = vec[5*i + 4];
 }
 
-//Output file for results
-const char output_File1[] = "WHM_Results_para_PK_ind.txt";
-//const char output_File1[] = "WHM_Results_para_gam_baseline.txt";
-const char output_File2[] = "WHM_Results_gam_and_infect_PK_ind.txt";
-
-ofstream out1(output_File1);
-ofstream out2(output_File2);	
+//******  2. Define all parameter values for this simulation ****** 
 
 //construct a trivial random generator engine from a time-based seed:
 unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -70,7 +72,6 @@ uniform_real_distribution<double> distribution2(0.0,1.0);
 //cout <<"Uniform random variable: "<<distribution2(generator) <<endl;
 
 uniform_real_distribution<double> distribution3(-3.69,-0.0);//Upper end changed back
-
 
 //Choose a value of dt (often called h in RK4)
 double dt = 0.2;
@@ -104,7 +105,7 @@ for(int j=0;j<250;j++){
 	R1[j] = number;
 }
 
-//cout<<"Test "<<pow(f,0)<<endl;
+//Using uncorrelating random numbers above, generate random numbers correlated in time
 double sum=0;
 double bray=0;
 for(int j=0;j<250;j++){
@@ -112,13 +113,12 @@ for(int j=0;j<250;j++){
 	for(int j1=1;j1<j+1;j1++){
 		sum+=R1[j1]*pow(f,j-j1);
 	}
-bray = pow(f,j)*R1[0]+sqrt(1-pow(f,2))*sum;
-//cout<< mu + sigma * bray <<endl;
-if(mu + sigma * bray>1 && mu + sigma * bray<35){
+	bray = pow(f,j)*R1[0]+sqrt(1-pow(f,2))*sum;
+	if(mu + sigma * bray>1 && mu + sigma * bray<35){
 		R.push_back (mu + sigma * bray);
+	}
 }
-}
-cout<<"Check length of R: "<<R.size() <<endl;
+//cout<<"Check length of R: "<<R.size() <<endl;
 
 //Now generate the random numbers needed for the innate & general-adaptive immunities
 double Pms;
@@ -134,7 +134,6 @@ double rand2 = exp(rand1);
 while(rand2 > pow(10,5.5)){
 	rand1 = meanLN + sigmaLN * distribution(generator);
 	rand2 = exp(rand1);
-	//cout<<"Pcs Replaced"<<endl;
 }
 
 Pcs = kc * rand2;
@@ -155,17 +154,14 @@ int upper, lower;
 
 
 vector<double> aux(TL,0.0);
-//cout<<"Dimensions of aux: " << aux.size() <<endl;
 vector<vector<double> > G(5 * L,aux);
 //cout<<"Dimensions of G: " << G.size() <<endl;
-
 aux.clear();
 
 //Initialise G1
 G[0][0] = 0.0;
 
-//Draw values for alpha, delta and delta5 from relevant distributions.
-//Sexual commitment rate
+//Gametocyte parameters: Draw values for alpha, delta and delta5 from relevant distributions.
 double alpha = exp( -alpha_mean + alpha_sd * distribution(generator) );
 while(alpha>0.3){
 	alpha = exp( -alpha_mean + alpha_sd * distribution(generator) );
@@ -185,35 +181,34 @@ while(delta5<33.6||delta5>384){
 cout<<"Delta5: "<< delta5 <<endl;
 
 double nu = (1/delta) * L; //rate of transitions through gametocyte compartments
-//double nu1 = (1/(delta +24)) * L; //Stage I gametocytes of longer duration? Drug action on IIa and IIb the same?
 double d5 = (1/delta5) * L; //death rate of mature gametocytes
 
 double nuv[5] = {nu,nu,nu,nu,d5};
 double fG1[L*5] , fG2[L*5] , fG3[L*5], fG4[L*5];
 
-//Default is no drugs (need fever as the trigger for seeking treatment), so add DELTA
+//Default is no drugs (need fever as the trigger for seeking treatment), 
+//so by default treatment starts after simulation ends
 int DELTA = TL + 5;
 int DELTA_old = 0;
 //cout<<"Check timings: "<<D1 <<" "<<D2 <<" "<<D3 <<" "<<D4 <<" "<<D5 <<" "<<D6 <<endl;
 
 double DRUGL;
-//double DRUGAM;
 
-double GUTAM[TL];//RESET THE WHOLE OF GUT EACH RUN
+double GUTAM[TL];
 double CENTRALAM[TL];
 double METABOLITEAM[TL];
 GUTAM[0] = 0.0;
 CENTRALAM[0] = 0.0;
 METABOLITEAM[0] = 0.0;
 
-double GUTL[TL];//RESET THE WHOLE OF GUT EACH RUN
+double GUTL[TL];
 double CENTRALL[TL];
 double METABOLITEL[TL];
 //GUTL[0] = 0.0;
 CENTRALL[0] = 0.0;
 METABOLITEL[0] = 0.0;
 
-//Then, use these to apply the units, and do the killing
+//These are used in the PD model (as they have the right units)
 double CENTRALAMx[TL];
 double METABOLITEAMx[TL];
 CENTRALAMx[0] = 0.0;
@@ -277,35 +272,6 @@ theta.k23L = 3.7 * pow(10,-4) * exp(r6);
 //////////////////////////////////////////////////
 /* Generate PD parameters in the struct. */
 //////////////////////////////////////////////////
-//Define struct values here?
-// paramsPD thetaPD;
-// //fix DHA values to AM values
-// thetaPD.kmax_AM = 0.189;
-// thetaPD.c50_AM = 3.3;
-
-// thetaPD.kmax_L = 0.165;
-// thetaPD.c50_L = 125.0;
-
-// //NOTE: DLF effect turned off at present
-// thetaPD.kmax_DLF = 0.0 / 24;
-// thetaPD.c50_DLF= 280.0;
-
-// //And now for the gametocytes. Fix the c50 values as per the asexuals?
-
-// thetaPD.Gkmax_AM12 = 0.18;
-// thetaPD.Gkmax_AM34 = 0.11;
-// thetaPD.Gkmax_AM5 = 0.08;
-
-// //fix DHA values to AM values
-
-// thetaPD.Gkmax_L12 = 0.13;
-// thetaPD.Gkmax_L34 = 0.04;
-// thetaPD.Gkmax_L5 = 0.0;
-
-
-//////////////////////////////////////////////////
-/* Generate PD parameters in the struct. */
-//////////////////////////////////////////////////
 
 paramsPD2 thetaPD2;
 //fix DHA values to AM values
@@ -319,7 +285,7 @@ thetaPD2.c50_L = 125.0;
 thetaPD2.kmax_DLF = 0.0 / 24;
 thetaPD2.c50_DLF= 280.0;
 
-//And now for the gametocytes. Fix the c50 values as per the asexuals?
+//And now for the gametocytes. Fix the c50 values as per the asexuals
 
 thetaPD2.Gkmax_AM.push_back(0.18);
 thetaPD2.Gkmax_AM.push_back(0.18);
@@ -341,6 +307,8 @@ thetaPD2.Gkmax_L.push_back(0.0);
 vector<double> P(400,0.0);
 P[0]=0.1;//initial condition
 
+//Start 'Dummy Run' (useful to estimate fever threshold from the untreated infection)
+
 vector<double> Q(40,0.0);//vector to help assess Day0 & Day1 parasitaemia
 Q[0]=0.1;//initial condition
 
@@ -353,15 +321,13 @@ double Scq = 1;
 double Smq = 1;
 double Svq = 1;
 int upperq, lowerq;
-double Qmax=0;//max, from untreated episode with same random numbers
-for(int k=0;k<20;k++){ //Loop for Q (untreated), not P
+double Qmax=0;
+for(int k=0;k<20;k++){ 
 
 	Scq = 1/(1+pow((Q[k]/Pcs),kaC));
 	if(k>3){
-		lowerq = round((k+1-4)*pow(lambda , k-4+1))-1;//Minus 1, since in Mathematica Initial Condition is at k=1
-		//cout<< (k-4)*pow(lambda , k-4) <<endl;
+		lowerq = round((k+1-4)*pow(lambda , k-4+1))-1;
 		upperq = k - 4 +1;
-		//cout<<"Lower: "<<lower << " Upper: "<<upper <<endl;
 
 		Pvq=0;
 		for(int k2=lowerq;k2<upperq;k2++){
@@ -369,7 +335,6 @@ for(int k=0;k<20;k++){ //Loop for Q (untreated), not P
 		}
 		Svq=1/(1+pow((Pvq/Pvs),kaV));
 		}
-	// General-adaptive immune response
 	if(Q[k]>C){
 		PCq=C;
 	}
@@ -395,7 +360,7 @@ for(int k=0;k<20;k++){ //Loop for Q (untreated), not P
 	if(Q[k+1]<pow(10,-5)){
 		break;
 	}
-}// end of Parasitaemia loop
+}// End of 'Dummy run'
 
 //////////////////////////////////////////////////
 /* Fever Threshold & Waiting time for treatment */
@@ -426,12 +391,8 @@ int uu2;
 int AS = 0;
 int CF = 0;
 int fevk = 0;
-//If treatment fails, retreat with probability Pretreat
+//If treatment fails, retreat with probability prob_retreat (defined above)
 double Pretreat = distribution2(generator);
-
-//////////////////////////////////////////////////
-/* 			Begin Runge-Kutta routine 			*/
-//////////////////////////////////////////////////
 
 double k1L[3], k2L[3], k3L[3], k4L[3];
 double xL, yL, zL;
@@ -444,6 +405,8 @@ double killFgam = 0.0;
 vector<double> store(3);
 vector<double> tempV(3);
 int summ = 0;
+
+//******  3. Run the model ****** 
 
 for(int k = 0; k < TL - 1; k++){
 	if(k==D1 + DELTA||k==D2 + DELTA||k==D3 + DELTA||k==D4 + DELTA||k==D5 + DELTA||k==D6 + DELTA){
@@ -517,7 +480,6 @@ for(int k = 0; k < TL - 1; k++){
 	CENTRALLx[k+1] = 1000 * (CENTRALL[k+1]/theta.VCL);
 	METABOLITELx[k+1] = 1000 * (METABOLITEL[k+1]/theta.VML);
 
-	//update 'kill factor'
 	killF -= dt * ( thetaPD2.kmax_L * (CENTRALLx[k]/(CENTRALLx[k]+thetaPD2.c50_L)) /*+ 
 	thetaPD.kmax_DLF * (METABOLITELx[k]/(METABOLITELx[k]+thetaPD.c50_DLF)) */+
 	thetaPD2.kmax_AM * (CENTRALAMx[k]/(CENTRALAMx[k]+thetaPD2.c50_AM)) + 
@@ -553,14 +515,12 @@ for(int k = 0; k < TL - 1; k++){
 		if(k1>3){
 			lower = round((k1+1-4)*pow(lambda , k1-4+1))-1;
 			upper = k1 - 4 +1;
-			//cout<<"Lower: "<<lower << " Upper: "<<upper <<endl;
 
 			Pv=0;
 			for(int k2=lower;k2<upper;k2++){
 				Pv += P[k2];
 			}
 			Sv=1/(1+pow((Pv/Pvs),kaV));
-			//cout<<"k1 equals: "<<k1<<" Lower: "<<lower << " Upper: "<<upper <<" Pv: "<<Pv<<endl;
 		}
 		// General-adaptive immune response
 		if(P[k1]>C){
@@ -604,10 +564,10 @@ for(int k = 0; k < TL - 1; k++){
 			}
 		}
 
+		//Has the asexual parasitaemia been cleared?
 		if(P[k1+1]<pow(10,-5)){
 			AS=1;
 		}
-
 		killF = 0.0; //reset
 	}//End of asexual parasitaemia loop
 
@@ -626,6 +586,8 @@ for(int k = 0; k < TL - 1; k++){
 
 
 }//end of 'dt' loop
+
+//******  4. Simulation finished, prepare data for saving to file. ****** 
 
 vector<double> GT1(TL,0.0);
 vector<double> GT2(TL,0.0);
