@@ -14,46 +14,49 @@ using namespace std;
 
 int main () {
 
+//Name of output file, in which to store the simulation
+const char output_File[] = "WHM_Gametocytes_Results.txt";
+
+// 1. Read in data file which determines the infectivity model	
+
 //Input library file For the infectivity model due to Bradley and co-workers
 const char infilename[] = "Bradley_Infectivity.dat";
-//Can this stuff go elsewhere??
 int mx = 1563;
-	int max = mx*5;//How many elements in file?
+int max = mx*5;//How many elements in file?
 
-	double vv;
-	vector<double>vec;
+double vv;
+vector<double>vec;
 
-	ifstream in(infilename);
-  	if(!in){
-    	cerr <<"Failed to open input file "<< infilename << endl;
-    exit(1);
-  	}
-  	int ii=0;
-    while(in){
-      if(ii >= max) break;
-      	in >>vv;
-      	vec.push_back(vv);
-      	ii++;
-    	}
-  	in.clear();
-  	in.close();
-  
-	cout<<"Vector vec contains "<< vec.size() <<" entries. "<<vec[1]<<endl;
-	double lib_gtot[mx];
-	double lib_gM[mx];
-	double lib_gF[mx];
-	double lib_ratio[mx];//Note: this is M/F
-	double lib_inf[mx];//Note: this is M/F
-	for(int i=0;i<mx;i++){
-		lib_gtot[i] = vec[5*i];
-		lib_gF[i] = vec[5*i + 1];
-		lib_gM[i] = vec[5*i + 2];
-		lib_ratio[i] = vec[5*i + 3];
-		lib_inf[i] = vec[5*i + 4];
+ifstream in(infilename);
+	if(!in){
+	cerr <<"Failed to open input file "<< infilename << endl;
+exit(1);
 	}
+	int ii=0;
+while(in){
+  if(ii >= max) break;
+  	in >>vv;
+  	vec.push_back(vv);
+  	ii++;
+	}
+	in.clear();
+	in.close();
 
-//Output file for results
-const char output_File[] = "WHM_Gametocytes_Results.txt";
+cout<<"Vector vec contains "<< vec.size() <<" entries. "<<vec[1]<<endl;
+double lib_gtot[mx];
+double lib_gM[mx];
+double lib_gF[mx];
+double lib_ratio[mx];//Note: this is M/F
+double lib_inf[mx];//Note: this is M/F
+for(int i=0;i<mx;i++){
+	lib_gtot[i] = vec[5*i];
+	lib_gF[i] = vec[5*i + 1];
+	lib_gM[i] = vec[5*i + 2];
+	lib_ratio[i] = vec[5*i + 3];
+	lib_inf[i] = vec[5*i + 4];
+}
+
+// 2. Define all parameter values for this simulation
 
 //Generate enough correlated random numbers for one run here?
 vector<double> R1(450,0.0); //These will be uncorrelated random numbers
@@ -73,7 +76,7 @@ for(int j=0;j<450;j++){
 	R1[j] = number;
 }
 
-//cout<<"Test "<<pow(f,0)<<endl;
+//Using uncorrelating random numbers above, generate random numbers correlated in time
 double sum=0;
 double bray=0;
 for(int j=0;j<450;j++){
@@ -81,18 +84,12 @@ for(int j=0;j<450;j++){
 	for(int j1=1;j1<j+1;j1++){
 		sum+=R1[j1]*pow(f,j-j1);
 	}
-bray = pow(f,j)*R1[0]+sqrt(1-pow(f,2))*sum;
-//cout<< mu + sigma * bray <<endl;
-if(mu + sigma * bray>1 && mu + sigma * bray<35){
-  R.push_back (mu + sigma * bray);
+	bray = pow(f,j)*R1[0]+sqrt(1-pow(f,2))*sum;
+	if(mu + sigma * bray>1 && mu + sigma * bray<35){
+  		R.push_back (mu + sigma * bray);
+	}
 }
-/*else{
-	cout<< mu + sigma * bray <<" Not suitable, rejected!"<<endl;
-}*/
-}
-cout<<"Check length of R: "<<R.size() <<endl;
-//First 5 elements
-//cout<< R[0]<<" "<<R[1]<<" "<<R[2]<<" "<<R[3]<<endl;
+//cout<<"Check length of R: "<<R.size() <<endl;
 
 //Now generate the random numbers needed for the innate & general-adaptive immunities
 double Pms;
@@ -270,6 +267,8 @@ for(int k = 0; k < TL - 1; k++){
 
 }//end of 'dt' loop
 
+// Simulation finished, prepare data for saving to file.
+
 vector<double> GT1(TL,0.0);
 vector<double> GT2(TL,0.0);
 vector<double> GT3(TL,0.0);
@@ -300,7 +299,7 @@ for(int k=0;k<TL-1;k++){
 }
 cout<<"Area under the infectivity curve: "<< auic <<endl;
 
-cout<<"You've reached the output stage. Well done!"<<endl; 
+cout<<"Now writing results to output file"<<endl; 
  	{
 	  ofstream out(output_File);
 	  if(!out){
