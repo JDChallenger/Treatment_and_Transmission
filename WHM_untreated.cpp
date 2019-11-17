@@ -17,7 +17,7 @@ int main () {
 //Name of output file, in which to store the simulation
 const char output_File[] = "WHM_Gametocytes_Results.txt";
 
-// 1. Read in data file which determines the infectivity model	
+//****** 1. Read in data file which determines the infectivity model ****** 
 
 //Input library file For the infectivity model due to Bradley and co-workers
 const char infilename[] = "Bradley_Infectivity.dat";
@@ -56,7 +56,7 @@ for(int i=0;i<mx;i++){
 	lib_inf[i] = vec[5*i + 4];
 }
 
-// 2. Define all parameter values for this simulation
+//******  2. Define all parameter values for this simulation ****** 
 
 //Generate enough correlated random numbers for one run here?
 vector<double> R1(450,0.0); //These will be uncorrelated random numbers
@@ -100,12 +100,10 @@ double sigmaLN =1.2;
 
 double rand1 = meanLN + sigmaLN * distribution(generator);
 double rand2 = exp(rand1);
-//cout<< rand2 <<" upper truncation: "<<pow(10,5.5)<<endl;
 
 while(rand2 > pow(10,5.5)){
 	rand1 = meanLN + sigmaLN * distribution(generator);
 	rand2 = exp(rand1);
-	//cout<<"Pcs Replaced"<<endl;
 }
 
 Pcs = kc * rand2;
@@ -118,7 +116,7 @@ cout<< "Pms: " << Pms <<endl;
 vector<double> P(400,0.0);
 P[0]=0.1;//initial condition
 
-vector<double> PC2(400,0.0);
+vector<double> PC2(400,0.0); //Auxilliary vector, for calculating adaptive immune response
 double PC;
 double PCsum;
 double Pv=0;
@@ -141,16 +139,14 @@ int twoday = (1/dt) * 48;
 int L = 3; //Number of aux. compartments at each gametocyte life stage.
 
 vector<double> aux(TL,0.0);
-cout<<"Dimensions of aux: " << aux.size() <<endl;
 vector<vector<double> > G(5 * L,aux);
 cout<<"Dimensions of G: " << G.size() <<endl;
-
 aux.clear();
 
 //Initialise G1
 G[0][0] = 0.0;
 
-//Draw values for alpha, delta and delta5 from relevant distributions. Put these in a struct?
+//Draw values for alpha, delta and delta5 from relevant distributions. Put
 //Sexual commitment rate
 double alpha = exp( -alpha_mean + alpha_sd * distribution(generator) );
 while(alpha>0.3){
@@ -183,7 +179,8 @@ int AS = 0;
 int CF = 0;
 int fevk = 0;
 
-//Start main loop
+//****** 	 3. Run the model	****** 
+
 for(int k = 0; k < TL - 1; k++){
 
 	fG1[0] = dt * gf(0,G[0][k],0,nuv[0]);
@@ -215,14 +212,11 @@ for(int k = 0; k < TL - 1; k++){
 		if(k1>3){
 			lower = round((k1+1-4)*pow(lambda , k1-4+1))-1;
 			upper = k1 - 4 +1;
-			//cout<<"Lower: "<<lower << " Upper: "<<upper <<endl;
-
 			Pv=0;
 			for(int k2=lower;k2<upper;k2++){
 				Pv += P[k2];
 			}
 			Sv=1/(1+pow((Pv/Pvs),kaV));
-			//cout<<"k1 equals: "<<k1<<" Lower: "<<lower << " Upper: "<<upper <<" Pv: "<<Pv<<endl;
 		}
 		// General-adaptive immune response
 		if(P[k1]>C){
@@ -243,9 +237,10 @@ for(int k = 0; k < TL - 1; k++){
 		}
 
 		P[k1+1] =  R[k1] * Sc * Sm * Sv * P[k1];
-		G[0][k+1] += alpha * R[k1] * Sc * Sm * Sv * P[k1]; //SHOLLD GROWTH RATE BE INCLUDED HERE?????
+		G[0][k+1] += alpha * R[k1] * Sc * Sm * Sv * P[k1];
 		//cout<<"On Day "<< 2*k1<<", " << P[k1]<<" "<<Sc<<" "<<Sm<<" "<<Sv<<" "<< G[0][k+1]<<endl;
 
+		//Has the asexual parasitaemia been cleared?
 		if(P[k1+1]<pow(10,-5)){
 			AS=1;
 		}
@@ -257,17 +252,15 @@ for(int k = 0; k < TL - 1; k++){
 		for(int ii=0;ii<L;ii++){
 			gam_mature += G[4*L + ii][k];
 		}
-
 		if(AS>0 && gam_mature < pow(10,-5)){
 			cout<< "Last mature gametocytes have gone" <<endl;
 			break;
 		}
 	}
 
-
 }//end of 'dt' loop
 
-// Simulation finished, prepare data for saving to file.
+//******  4. Simulation finished, prepare data for saving to file. ****** 
 
 vector<double> GT1(TL,0.0);
 vector<double> GT2(TL,0.0);
@@ -284,7 +277,6 @@ for(int k=0;k<TL;k++){
 		GT5[k] += G[4*L + i][k];
 	}
 }
-
 G.clear();
 
 //Convert gametocyte density to infectivity (using model due to Bradley et al.)
@@ -312,5 +304,4 @@ cout<<"Now writing results to output file"<<endl;
 	    out.close();
 	}
 
-
-  } //end of main
+} //end of main
